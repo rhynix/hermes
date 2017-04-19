@@ -3,24 +3,13 @@
 import csv
 import argparse
 import numpy as np
+
 from neural_network import NeuralNetwork
+from collections import namedtuple
 
-def read_dataset(file_name, sizes):
-    output_size = sizes[-1]
-    inputs      = [];
-    outputs     = [];
+Dataset = namedtuple('Dataset', ['inputs', 'outputs'])
 
-    with open(file_name, 'r') as handle:
-        for row in csv.reader(handle):
-            data         = [int(x) for x in row]
-            output_class = data[0]
-
-            outputs.append([output_class == idx for idx in range(output_size)])
-            inputs.append(data[1:])
-
-    return (np.array(inputs), np.array(outputs))
-
-def arguments():
+def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -53,8 +42,48 @@ def arguments():
 
     return vars(parser.parse_args())
 
+def output_for_class(output_class, size):
+    return [output_class == idx for idx in range(size)]
+
+def read_dataset(file_name, output_size):
+    inputs  = [];
+    outputs = [];
+
+    with open(file_name, 'r') as handle:
+        for row in csv.reader(handle):
+            example_data    = list(map(int, row))
+            example_inputs  = example_data[1:]
+            example_outputs = output_for_class(example_data[0], output_size)
+
+            inputs.append(example_inputs)
+            outputs.append(example_outputs)
+
+    return Dataset(np.array(inputs), np.array(outputs))
+
+def split_dataset(dataset, size):
+    first_dataset  = Dataset(dataset.inputs[:size], dataset.outputs[:size])
+    second_dataset = Dataset(dataset.inputs[size:], dataset.outputs[size:])
+
+    return (first_dataset, second_dataset)
+
+def report_initial_cost(nn, dataset):
+    results = nn.feed_forward(dataset.inputs)
+    cost    = nn.cost(dataset.outputs, results[-1])
+
+    print('Initial cost: %.10f' % (cost,))
+
+def learn_and_report_cost(nn, dataset, iterations):
+    learn = nn.learn(dataset.inputs, dataset.outputs, iterations)
+
+    for index, cost in enumerate(learn):
+        print('Cost(%04i): %.10f' % (index + 1, cost))
+
+def report_evaluation(nn, dataset):
+    accuracy = nn.evaluate(dataset.inputs, dataset.outputs) * 100
+    print('Accuracy: %.3f%%' % (accuracy,))
+
 def main():
-    args = arguments()
+    args = parse_args()
 
     hidden_layer_sizes = args['layer_size']
     iterations         = args['iterations']
@@ -66,29 +95,14 @@ def main():
 
     print('Reading dataset...')
 
-    nn              = NeuralNetwork(layer_sizes, learning_rate)
-    inputs, outputs = read_dataset(file_name, layer_sizes)
+    dataset                      = read_dataset(file_name, layer_sizes[-1])
+    training_set, evaluation_set = split_dataset(dataset, training_size)
 
-    print('Starting training...')
+    nn = NeuralNetwork(layer_sizes, learning_rate)
 
-    training_inputs = inputs[:training_size]
-    eval_inputs     = inputs[training_size:]
-
-    training_outputs = outputs[:training_size]
-    eval_outputs     = outputs[training_size:]
-
-    results      = nn.feed_forward(training_inputs)
-    initial_cost = nn.cost(training_outputs, results[-1])
-
-    print('Initial cost: %.10f' % (initial_cost,))
-
-    learn = nn.learn(training_inputs, training_outputs, iterations)
-
-    for index, cost in enumerate(learn):
-        print('Cost(%05i): %.10f' % (index + 1, cost))
-
-    accuracy = nn.evaluate(eval_inputs, eval_outputs) * 100
-    print('Accuracy: %.3f%%' % (accuracy,))
+    report_initial_cost(nn, training_set)
+    learn_and_report_cost(nn, training_set, iterations)
+    report_evaluation(nn, evaluation_set)
 
 if __name__ == '__main__':
     main()
