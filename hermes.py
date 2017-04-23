@@ -5,9 +5,7 @@ import argparse
 import numpy as np
 
 from neural_network import NeuralNetwork
-from collections import namedtuple
-
-Dataset = namedtuple('Dataset', ['inputs', 'outputs'])
+from dataset        import Dataset
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -73,13 +71,13 @@ def report_initial_cost(nn, dataset):
     print('Initial cost: %.10f' % (cost,))
 
 def learn_and_report_cost(nn, dataset, iterations):
-    learn = nn.learn(dataset.inputs, dataset.outputs, iterations)
+    learn = nn.learn(dataset, iterations)
 
     for index, cost in enumerate(learn):
         print('Cost(%04i): %.10f' % (index + 1, cost))
 
 def report_evaluation(nn, dataset):
-    accuracy = nn.evaluate(dataset.inputs, dataset.outputs) * 100
+    accuracy = nn.evaluate(dataset) * 100
     print('Accuracy: %.3f%%' % (accuracy,))
 
 def main():
@@ -96,7 +94,7 @@ def main():
     print('Reading dataset...')
 
     dataset                      = read_dataset(file_name, layer_sizes[-1])
-    training_set, evaluation_set = split_dataset(dataset, training_size)
+    training_set, evaluation_set = dataset.split_at(training_size)
 
     nn = NeuralNetwork(layer_sizes, learning_rate)
 

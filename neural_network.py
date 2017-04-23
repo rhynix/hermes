@@ -15,22 +15,23 @@ class NeuralNetwork:
         return [stddev * np.random.randn(prev + 1, curr) + mean
                 for prev, curr in zip(sizes, sizes[1:])]
 
-    def learn(self, inputs, outputs, iterations):
+    def learn(self, dataset, iterations):
         batch_size = 1000
 
         for i in range(iterations):
-            self.learn_in_batches(inputs, outputs, batch_size)
+            self.learn_in_batches(dataset, batch_size)
+            results = self.feed_forward(dataset.inputs)[-1]
 
-            yield self.cost(outputs, self.feed_forward(inputs)[-1])
+            yield self.cost(dataset.outputs, results)
 
-    def learn_in_batches(self, inputs, outputs, size):
-        for idx in range(0, len(inputs), size):
-            self.learn_batch(inputs[idx:idx+size], outputs[idx:idx+size])
+    def learn_in_batches(self, dataset, size):
+        for idx in range(0, len(dataset), size):
+            self.learn_batch(dataset[idx:idx+size])
 
-    def learn_batch(self, inputs, outputs):
-        examples = len(inputs)
-        results  = self.feed_forward(inputs)
-        changes  = self.changes(outputs, results)
+    def learn_batch(self, dataset):
+        examples = len(dataset)
+        results  = self.feed_forward(dataset.inputs)
+        changes  = self.changes(dataset.outputs, results)
 
         self.apply_changes(changes, examples)
 
@@ -73,13 +74,13 @@ class NeuralNetwork:
     def add_bias(self, results):
         return np.hstack((np.ones((len(results), 1)), results))
 
-    def evaluate(self, inputs, outputs):
-        results = self.feed_forward(inputs)[-1]
+    def evaluate(self, dataset):
+        results = self.feed_forward(dataset.inputs)[-1]
 
-        output_classes = np.argmax(outputs, axis=1)
-        result_classes = np.argmax(results, axis=1)
+        output_classes = np.argmax(dataset.outputs, axis=1)
+        result_classes = np.argmax(results,         axis=1)
 
         correct = np.sum(output_classes == result_classes)
-        total   = len(inputs)
+        total   = len(dataset)
 
         return correct / total
