@@ -19,12 +19,12 @@ class NeuralNetwork:
         batch_size = 1000
 
         for i in range(iterations):
-            self.learn_in_batches(dataset, batch_size)
+            self.learn_in_mini_batches(dataset, batch_size)
             results = self.feed_forward(dataset.inputs)[-1]
 
             yield self.cost(dataset.outputs, results)
 
-    def learn_in_batches(self, dataset, size):
+    def learn_in_mini_batches(self, dataset, size):
         for idx in range(0, len(dataset), size):
             self.learn_batch(dataset[idx:idx+size])
 
