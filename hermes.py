@@ -16,7 +16,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-r', '--learning-rate', default=0.3, type=float,
+        '-r', '--learning-rate', default=0.1, type=float,
         help='The learning rate'
     )
 
