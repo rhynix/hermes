@@ -58,12 +58,6 @@ def read_dataset(file_name, output_size):
 
     return Dataset(np.array(inputs), np.array(outputs))
 
-def split_dataset(dataset, size):
-    first_dataset  = Dataset(dataset.inputs[:size], dataset.outputs[:size])
-    second_dataset = Dataset(dataset.inputs[size:], dataset.outputs[size:])
-
-    return (first_dataset, second_dataset)
-
 def report_initial_cost(nn, dataset):
     results = nn.feed_forward(dataset.inputs)
     cost    = nn.cost(dataset.outputs, results[-1])
