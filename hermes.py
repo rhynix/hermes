@@ -76,9 +76,9 @@ def learn_and_report_cost(nn, dataset, iterations):
     for index, cost in enumerate(learn):
         print('Cost(%04i): %.10f' % (index + 1, cost))
 
-def report_evaluation(nn, dataset):
-    accuracy = nn.evaluate(dataset) * 100
-    print('Accuracy: %.3f%%' % (accuracy,))
+def report_accuracy(nn, dataset):
+    accuracy = nn.accuracy(dataset)
+    print('Accuracy: %.3f%%' % (accuracy * 100,))
 
 def main():
     args = parse_args()
@@ -100,7 +100,7 @@ def main():
 
     report_initial_cost(nn, training_set)
     learn_and_report_cost(nn, training_set, iterations)
-    report_evaluation(nn, evaluation_set)
+    report_accuracy(nn, evaluation_set)
 
 if __name__ == '__main__':
     main()

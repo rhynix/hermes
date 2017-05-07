@@ -74,7 +74,7 @@ class NeuralNetwork:
     def add_bias(self, results):
         return np.hstack((np.ones((len(results), 1)), results))
 
-    def evaluate(self, dataset):
+    def accuracy(self, dataset):
         results = self.feed_forward(dataset.inputs)[-1]
 
         output_classes = np.argmax(dataset.outputs, axis=1)
